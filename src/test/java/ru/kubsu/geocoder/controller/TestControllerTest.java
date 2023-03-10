@@ -2,6 +2,7 @@ package ru.kubsu.geocoder.controller;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -12,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.kubsu.geocoder.dto.RestApiError;
+import ru.kubsu.geocoder.model.Mark;
+import ru.kubsu.geocoder.repository.TestRepository;
 import ru.kubsu.geocoder.util.TestUtil;
 
 import java.util.Map;
@@ -25,6 +28,10 @@ class TestControllerTest {
     @LocalServerPort
     Integer port;
 
+    @Autowired
+    TestRepository testRepository;
+
+    private TestRepository repository;
     private final TestRestTemplate testRestTemplate = new TestRestTemplate();
 
     @BeforeAll
@@ -81,6 +88,39 @@ class TestControllerTest {
         assertEquals(null, body.getDone());
 
     }
+
+    @Test
+    void testSaveDatabase() {
+      ResponseEntity<Void> response = testRestTemplate.
+        getForEntity(
+          "http://localhost:"+ port +"/tests/save?name=testSave", Void.class);
+
+      assertEquals(HttpStatus.OK,response.getStatusCode());
+    }
+
+    @Test
+    void testSaveDatabaseFailed() {
+      ResponseEntity<Void> response = testRestTemplate.
+        getForEntity(
+          "http://localhost:"+ port +"/tests/save", Void.class);
+
+      assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
+    }
+
+
+  @Test
+  void testLoadDatabaseFailed() {
+    ResponseEntity<ru.kubsu.geocoder.model.Test> response = testRestTemplate.
+      getForEntity(
+        "http://localhost:"+ port +"/tests/load/9999999999", ru.kubsu.geocoder.model.Test.class);
+
+    final ru.kubsu.geocoder.model.Test body = response.getBody();
+
+    assertEquals(HttpStatus.OK,response.getStatusCode());
+    assertEquals(null,body);
+    System.out.println(body);
+
+  }
 
     @AfterEach
     void tearDown() {

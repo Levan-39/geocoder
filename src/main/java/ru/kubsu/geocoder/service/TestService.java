@@ -27,8 +27,5 @@ public class TestService {
         test.setName(name);
     repository.save(test);
     }
-
-    public Test load (String name){
-    return repository.findByName(name).orElse(null);
-    }
+    public Test load (String name) {return repository.findByName(name).orElse(null);}
 }
