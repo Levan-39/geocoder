@@ -13,4 +13,8 @@ public interface NominatimClient {
         @RequestMapping(method = RequestMethod.GET, value = "/search", produces = "application/json")
         List<NominatimPlace> search(@RequestParam(value="q") String query,
                                     @RequestParam(value="format") String format);
+        @RequestMapping(method = RequestMethod.GET, value = "/reverse",produces = "application/json")
+        NominatimPlace reverse(@RequestParam(value="lat")Double lat,
+                                    @RequestParam(value="lon")Double lon,
+                                    @RequestParam(value="format")String format);
     }

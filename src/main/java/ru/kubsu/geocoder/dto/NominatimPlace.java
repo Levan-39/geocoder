@@ -1,27 +1,33 @@
 package ru.kubsu.geocoder.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 public class NominatimPlace {
-    Double lat;
-    Double lon;
+  @JsonProperty("lat")
+    Double latitude;
+  @JsonProperty("lon")
+    Double longitude;
+  @JsonProperty("display_name")
     String displayName;
+  @JsonProperty("type")
     String type;
 
-    public Double getLat() {
-        return lat;
+    public Double getLatitude() {
+        return latitude;
     }
 
-    public void setLat(Double lat) {
-        this.lat = lat;
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
     }
 
-    public Double getLon() {
-        return lon;
+    public Double getLongitude() {
+        return longitude;
     }
 
-    public void setLon(Double lon) {
-        this.lon = lon;
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 
     public String getDisplayName() {
@@ -45,19 +51,19 @@ public class NominatimPlace {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         NominatimPlace that = (NominatimPlace) o;
-        return Objects.equals(lat, that.lat) && Objects.equals(lon, that.lon) && Objects.equals(displayName, that.displayName) && Objects.equals(type, that.type);
+        return Objects.equals(latitude, that.latitude) && Objects.equals(longitude, that.longitude) && Objects.equals(displayName, that.displayName) && Objects.equals(type, that.type);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(lat, lon, displayName, type);
+        return Objects.hash(latitude, longitude, displayName, type);
     }
 
     @Override
     public String toString() {
         return "NominatimPlace{" +
-                "lat='" + lat + '\'' +
-                ", lon='" + lon + '\'' +
+                "lat='" + latitude + '\'' +
+                ", lon='" + longitude + '\'' +
                 ", displayName='" + displayName + '\'' +
                 ", type='" + type + '\'' +
                 '}';
