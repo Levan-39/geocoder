@@ -15,20 +15,20 @@ public class TestService {
         this.repository = repository;
     }
 
-    public Test build(Integer id, String name){
+    public Test build(final Integer id, final String name){
         Test test = new Test();
         test.setId(id);
         test.setName(name);
         return test;
     }
 
-    public void save (String name){
+    public void save (final String name){
         Test test = new Test();
         test.setName(name);
     repository.save(test);
     }
 
-    public Test load (String name){
+    public Test load (final String name){
     return repository.findByName(name).orElse(null);
     }
 }
