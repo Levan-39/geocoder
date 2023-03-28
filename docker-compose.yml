@@ -18,7 +18,7 @@ services:
 
   database:
     image: postgres:15
-    container_name: geocoder
+    container_name: geocoder-postgres
     restart: unless-stopped
     environment:
       - POSTGRES_DB=geocoder
