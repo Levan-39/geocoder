@@ -5,30 +5,35 @@ import org.springframework.stereotype.Service;
 import ru.kubsu.geocoder.model.Test;
 import ru.kubsu.geocoder.repository.TestRepository;
 
+/**
+ *
+ */
 @Service
 public class TestService {
 
-    private TestRepository repository;
+  private final TestRepository repository;
 
-@Autowired
-    public TestService(TestRepository repository) {
-        this.repository = repository;
-    }
+  @Autowired
+  public TestService(final TestRepository repository) {
+    this.repository = repository;
+  }
 
-    public Test build(final Integer id, final String name){
-        Test test = new Test();
-        test.setId(id);
-        test.setName(name);
-        return test;
-    }
+  public Test build(final Integer id, final String name) {
+    final Test test = new Test();
+    test.setId(id);
+    test.setName(name);
+    return test;
+  }
 
-    public void save (final String name){
-        Test test = new Test();
-        test.setName(name);
+  public void save(final String name) {
+    final Test test = new Test();
+    test.setName(name);
+
     repository.save(test);
-    }
+  }
 
-    public Test load (final String name){
-    return repository.findByName(name).orElse(null);
-    }
+  public Test load(final String name) {
+    return repository.findByName(name)
+      .orElse(null);
+  }
 }

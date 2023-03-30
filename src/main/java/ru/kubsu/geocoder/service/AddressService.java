@@ -23,33 +23,16 @@ public class AddressService {
     this.nominatimClient = nominatimClient;
     this.addressRepository = addressRepository;
   }
-  //  public Optional<Address> search(final String address) {
-//    final Optional<Address> cacheValue = addressRepository.findByAddress(address);
-//    if (cacheValue.isPresent()) {
-//      return cacheValue;
-//    }
-//
-//    final Optional<NominatimPlace> nominatimValue = nominatimClient.search(address);
-//    if (nominatimValue.isPresent()) {
-//      return Optional.of(Address.of(nominatimValue.get()));
-//    }
-//    return Optional.empty();
-//  }
-  public Optional<Address> search(final String address) {
-    return addressRepository.findByAddress(address)
-      .or(() ->nominatimClient.search(address)
-        .map(p->addressRepository.save(Address.of(p))));
+
+  public Optional<Address> search(final String query) {
+    return addressRepository.findByQuery(query)
+      .or(() -> nominatimClient.search(query)
+        .map(p -> addressRepository.save(Address.of(p, query))));
+  }
+
+  public Optional<Address> reverse(final Double latitude, final Double longitude) {
+    return addressRepository.findByLatitudeAndLongitude(latitude, longitude)
+      .or(() -> nominatimClient.reverse(latitude, longitude)
+        .map(p -> addressRepository.save(Address.of(p.displayName(), latitude, longitude, null))));
   }
 }
-//  public Optional<Address> search(final String address) {
-//    return addressRepository.findByAddress(address)
-//      .or(() ->{
-//        final Optional<Address>value = nominatimClient.search(address)
-//          .map(p->{
-//            final Address value1 = Address.of(p);
-//            addressRepository.save(value1;
-//            return value1;
-//
-//    });
-//            return value;
-//      });

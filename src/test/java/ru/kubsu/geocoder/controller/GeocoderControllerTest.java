@@ -3,6 +3,7 @@ package ru.kubsu.geocoder.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -19,58 +20,91 @@ import ru.kubsu.geocoder.repository.AddressRepository;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class GeocoderControllerTest {
+
   @LocalServerPort
   Integer port;
-  private final TestRestTemplate testRestTemplate = new TestRestTemplate();
 
+  private final TestRestTemplate testRestTemplate = new TestRestTemplate();
   @MockBean
   private NominatimClient nominatimClient;
 
   @Autowired
   private AddressRepository addressRepository;
-  @Test
 
   @BeforeEach
-  void setUp(){
+  void setUp() {
     addressRepository.deleteAll();
   }
 
-  void searchWhenNominatimNotResponceTest() {
-    when(nominatimClient.search(anyString())).thenReturn(Optional.empty());
+  @Test
+  void searchWhenNominationNotResponse() {
+    final String query = "kubsu";
+    when(nominatimClient.search(anyString()))
+      .thenReturn(Optional.empty());
+
     ResponseEntity<Address> response = testRestTemplate.
-      getForEntity(
-        "http://localhost:"+ port +"/geocoder/search?address=кубгу", Address.class);
+      getForEntity("http://localhost:" + port + "/geocoder/search?query=" + query, Address.class);
 
-    assertEquals(HttpStatus.NOT_FOUND,response.getStatusCode());
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     assertNull(response.getBody());
-
-  }
-
-  private static NominatimPlace buildTestPlace(){
-    return new NominatimPlace(45.046580, 38.978289,"123","123");
   }
 
   @Test
-  void searchWhenNominatimNotResponseTest1() {
-    final Address testAddress = buildTestAddress();
-    when(nominatimClient.search(anyString())).thenReturn(Optional.of(buildTestPlace()));
+  void search() {
+    final String query = "kubsu";
+    final Address testAddress = buildTestAddress(query);
+    when(nominatimClient.search(anyString()))
+      .thenReturn(Optional.of(buildTestPlace()));
+
     ResponseEntity<Address> response = testRestTemplate.
-      getForEntity(
-        "http://localhost:"+ port +"/geocoder/search?address=кубгу", Address.class);
+      getForEntity("http://localhost:" + port + "/geocoder/search?query=" + query, Address.class);
 
-    assertEquals(HttpStatus.OK,response.getStatusCode());
-
+    assertEquals(HttpStatus.OK, response.getStatusCode());
     final Address body = response.getBody();
-    assertEquals(testAddress,body);
-
+    assertEquals(testAddress, body);
   }
-  private static Address buildTestAddress(){
-    return Address.of(buildTestPlace());
+
+  @Test
+  void reverseWhenNominationNotResponse() {
+    final String latitude = "45.046910";
+    final String longitude = "39.030416";
+    when(nominatimClient.reverse(anyDouble(), anyDouble()))
+      .thenReturn(Optional.empty());
+
+    ResponseEntity<Address> response = testRestTemplate.
+      getForEntity("http://localhost:" + port + "/geocoder/reverse?latitude=" + latitude + "&longitude=" + longitude, Address.class);
+
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertNull(response.getBody());
+  }
+
+  @Test
+  void reverse() {
+    final String latitude = "45.02036085";
+    final String longitude = "39.03099994504268";
+    final Address testAddress = buildTestAddress(null);
+    when(nominatimClient.reverse(anyDouble(), anyDouble()))
+      .thenReturn(Optional.of(buildTestPlace()));
+
+    ResponseEntity<Address> response = testRestTemplate.
+      getForEntity("http://localhost:" + port + "/geocoder/reverse?latitude=" + latitude + "&longitude=" + longitude, Address.class);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    final Address body = response.getBody();
+    assertEquals(testAddress, body);
+  }
+
+  private static NominatimPlace buildTestPlace() {
+    return new NominatimPlace(45.02036085, 39.03099994504268, "Кубанский государственный университет", "Университет");
+  }
+  private static Address buildTestAddress(String query) {
+    return Address.of(buildTestPlace(), query);
   }
 }

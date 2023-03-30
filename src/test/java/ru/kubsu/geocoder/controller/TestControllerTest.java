@@ -6,16 +6,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.kubsu.geocoder.dto.RestApiError;
 import ru.kubsu.geocoder.model.Mark;
+import ru.kubsu.geocoder.repository.AddressRepository;
 import ru.kubsu.geocoder.repository.TestRepository;
+import ru.kubsu.geocoder.util.TestUtil;
+
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
-
-
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class TestControllerTest {
@@ -24,121 +28,136 @@ class TestControllerTest {
   Integer port;
 
   @Autowired
-  TestRepository testRepository;
-
   private TestRepository repository;
+  @Autowired
+  private AddressRepository addressRepository;
 
-  private final TestRestTemplate testRestTemplate = new TestRestTemplate();
+  @BeforeEach
+  void setUp() {
+    addressRepository.deleteAll();
+  }
 
   @BeforeAll
   static void beforeAll() {
-    System.out.println("beforeAll");
-  }
-
-  @BeforeEach
-  public void setUp() {
-    ru.kubsu.geocoder.model.Test test = new ru.kubsu.geocoder.model.Test();
-    test.setName("megurx");
-    test.setId(1);
-    test.setDone(true);
-    test.setMark(Mark.A);
-    testRepository.save(test);
   }
 
   @AfterEach
   void tearDown() {
-    System.out.println("tearDown");
+    System.out.println("AfterEach");
 
+  }
+
+  @Test
+  void getTest() {
+    assertEquals(3, TestUtil.sum(1, 2));
   }
 
   @Test
   void integrationTest() {
+    TestRestTemplate testRestTemplate = new TestRestTemplate();
     ResponseEntity<ru.kubsu.geocoder.model.Test> response = testRestTemplate.
-      getForEntity(
-        "http://localhost:"+ port +"/tests/1?name=test", ru.kubsu.geocoder.model.Test.class);
+      getForEntity("http://localhost:" + port + "/tests/1?name=test", ru.kubsu.geocoder.model.Test.class);
 
+    assertEquals(HttpStatus.OK, response.getStatusCode());
     final ru.kubsu.geocoder.model.Test body = response.getBody();
-
-    assertEquals(1,body.getId());
-    assertEquals("test",body.getName());
+    assertEquals(1, body.getId());
+    assertEquals("test", body.getName());
     assertEquals(false, body.getDone());
     assertEquals(null, body.getMark());
   }
-
   @Test
-  void integrationTestWhenNameIsNull() {
-    ResponseEntity<String> response = testRestTemplate.
-      getForEntity(
-        "http://localhost:"+ port +"/tests/1",
-        String.class);
-    assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
-    final String body = response.getBody();
-    System.out.println(body);
+  void integrationTestWhereIsNull() {
+    TestRestTemplate testRestTemplate = new TestRestTemplate();
+    ResponseEntity<Map<String, String>> response = testRestTemplate.
+      exchange("http://localhost:" + port + "/tests/1",
+        HttpMethod.GET,
+        null,
+        new ParameterizedTypeReference<Map<String, String>>() {});
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+    final Map<String, String> body = response.getBody();
+    assertEquals("400", body.get("status"));
+    assertEquals("Bad Request", body.get("error"));
+    assertEquals("/tests/1", body.get("path"));
   }
 
   @Test
-  void integrationTestWhenIdIsString() {
+  void integrationTestWhereIsString() {
+    TestRestTemplate testRestTemplate = new TestRestTemplate();
     ResponseEntity<RestApiError> response = testRestTemplate.
-      exchange(
-        "http://localhost:"+ port +"/tests/abc?name=test",
-        HttpMethod.GET,null, RestApiError.class);
+      exchange("http://localhost:" + port + "/tests/abc?name=test",
+        HttpMethod.GET,
+        null,
+        new ParameterizedTypeReference<RestApiError>() {});
 
-    assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 
     final RestApiError body = response.getBody();
-    assertEquals(400,body.status());
-    assertEquals("Bad Request",body.error());
-    assertEquals("/tests/abc",body.path());
-    System.out.println(body);
+    assertEquals(400, body.status());
+    assertEquals("Bad Request", body.error());
+    assertEquals("/tests/abc", body.path());
   }
 
   @Test
-  void testSaveDatabase() {
-    ResponseEntity<Void> response = testRestTemplate.
-      getForEntity(
-        "http://localhost:"+ port +"/tests/save?name=testSave", Void.class);
+  void integrationTestSaveError() {
+    TestRestTemplate testRestTemplate = new TestRestTemplate();
+    ResponseEntity<RestApiError> response = testRestTemplate.
+      exchange("http://localhost:" + port + "/tests/save",
+        HttpMethod.GET,
+        null,
+        new ParameterizedTypeReference<RestApiError>() {});
 
-    assertEquals(HttpStatus.OK,response.getStatusCode());
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+    final RestApiError body = response.getBody();
+    assertEquals(400, body.status());
+    assertEquals("Bad Request", body.error());
+    assertEquals("/tests/save", body.path());
   }
 
   @Test
-  void testSaveDatabaseFailed() {
-    ResponseEntity<Void> response = testRestTemplate.
-      getForEntity(
-        "http://localhost:"+ port +"/tests/save", Void.class);
+  void integrationTestLoad() {
+    ru.kubsu.geocoder.model.Test test = new ru.kubsu.geocoder.model.Test();
+    test.setId(1);
+    test.setName("testLoad");
+    test.setDone(false);
+    test.setMark(Mark.A);
+    System.out.println(test);
+    repository.save(test);
 
-    assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
-  }
 
-  @Test
-  void testLoadDatabase() {
+    TestRestTemplate testRestTemplate = new TestRestTemplate();
     ResponseEntity<ru.kubsu.geocoder.model.Test> response = testRestTemplate.
-      getForEntity(
-        "http://localhost:"+ port +"/tests/load/megurx", ru.kubsu.geocoder.model.Test.class);
+      getForEntity("http://localhost:" + port + "/tests/load/testLoad", ru.kubsu.geocoder.model.Test.class);
 
+    assertEquals(HttpStatus.OK, response.getStatusCode());
     final ru.kubsu.geocoder.model.Test body = response.getBody();
-
-    assertEquals(HttpStatus.OK,response.getStatusCode());
-    assertEquals("megurx",body.getName());
-    assertEquals(true, body.getDone());
+    assertEquals(1, body.getId());
+    assertEquals("testLoad", body.getName());
+    assertEquals(false, body.getDone());
     assertEquals(Mark.A, body.getMark());
-    System.out.println(body);
   }
 
   @Test
-  void testLoadDatabaseFailed() {
-    ResponseEntity<ru.kubsu.geocoder.model.Test> response = testRestTemplate.
-      getForEntity(
-        "http://localhost:"+ port +"/tests/load/9999999999", ru.kubsu.geocoder.model.Test.class);
+  void integrationTestLoadError() {
+    TestRestTemplate testRestTemplate = new TestRestTemplate();
+    ResponseEntity<RestApiError> response = testRestTemplate.
+      exchange("http://localhost:" + port + "/tests/load/",
+        HttpMethod.GET,
+        null,
+        new ParameterizedTypeReference<RestApiError>() {});
 
-    final ru.kubsu.geocoder.model.Test body = response.getBody();
-    assertEquals(null,body);
-    System.out.println(body);
-    System.out.println(response.getStatusCode());
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+    final RestApiError body = response.getBody();
+    assertEquals(400, body.status());
+    assertEquals("Bad Request", body.error());
+    assertEquals("/tests/load/", body.path());
   }
 
   @AfterAll
   static void afterAll() {
-    System.out.println("afterAll");
+    System.out.println("AfterAll");
   }
 }

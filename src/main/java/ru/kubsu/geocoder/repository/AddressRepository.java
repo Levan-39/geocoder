@@ -11,6 +11,9 @@ import java.util.Optional;
  */
 @Repository
 public interface AddressRepository extends CrudRepository<Address, Integer> {
-  Optional<Address> findByAddress(final String address);
-  Optional<Address> findByLatitudeAndLongitude(final Double latitude, final Double longitude);
+  Optional<Address> findByAddress(String address);
+
+  Optional<Address> findByLatitudeAndLongitude(Double latitude, Double longitude);
+
+  Optional<Address> findByQuery(String query);
 }

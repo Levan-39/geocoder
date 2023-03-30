@@ -9,39 +9,41 @@ import javax.persistence.Id;
 import java.util.Objects;
 
 /**
- * пам
- * парам
- * приветствую смотрящих
+ *
  */
 @Entity
 @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
-public final class Address {
+public class Address {
+
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer id;
   private String address;
   private Double latitude;
   private Double longitude;
+  private String query;
 
   public Integer getId() {
     return id;
   }
 
-  public void setId(Integer id) {
+  public void setId(final Integer id) {
     this.id = id;
   }
+
   public String getAddress() {
     return address;
   }
 
-  public void setAddress(String address) {
+  public void setAddress(final String address) {
     this.address = address;
   }
+
   public Double getLatitude() {
     return latitude;
   }
 
-  public void setLatitude(Double latitude) {
+  public void setLatitude(final Double latitude) {
     this.latitude = latitude;
   }
 
@@ -49,39 +51,63 @@ public final class Address {
     return longitude;
   }
 
-  public void setLongitude(Double longitude) {
+  public void setLongitude(final Double longitude) {
     this.longitude = longitude;
   }
 
+  public String getQuery() {
+    return query;
+  }
+
+  public void setQuery(final String query) {
+    this.query = query;
+  }
+
   @Override
-  public boolean equals(Object obj) {
-    if (obj == this) return true;
-    if (obj == null || obj.getClass() != this.getClass()) return false;
+  public boolean equals(final Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || obj.getClass() != this.getClass()) {
+      return false;
+    }
     final Address that = (Address) obj;
-    return //Objects.equals(this.id, that.id) &&
-      Objects.equals(this.address, that.address) &&
-        Objects.equals(this.latitude, that.latitude) &&
-        Objects.equals(this.longitude, that.longitude);
+    return /*Objects.equals(this.id, that.id) &&*/
+      Objects.equals(this.address, that.address)
+        && Objects.equals(this.latitude, that.latitude)
+        && Objects.equals(this.longitude, that.longitude)
+        && Objects.equals(this.query, that.query);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, address, latitude, longitude);
+    return Objects.hash(id, address, latitude, longitude, query);
   }
 
   @Override
   public String toString() {
-    return "Address[" +
-      "id=" + id + ", " +
-      "address=" + address + ", " +
-      "latitude=" + latitude + ", " +
-      "longitude=" + longitude + ']';
+    return "Address["
+      + "id=" + id + ", "
+      + "address=" + address + ", "
+      + "latitude=" + latitude + ", "
+      + "longitude=" + longitude + ", "
+      + "query=" + query + ']';
   }
-  public static Address of(final NominatimPlace place){
-    Address result = new Address();
+
+  public static Address of(final NominatimPlace place, final String query) {
+    final Address result = new Address();
     result.setAddress(place.displayName());
     result.setLatitude(place.latitude());
     result.setLongitude(place.longitude());
+    result.setQuery(query);
+    return result;
+  }
+  public static Address of(final String address, final Double latitude, final Double longitude, final String query) {
+    final Address result = new Address();
+    result.setAddress(address);
+    result.setLatitude(latitude);
+    result.setLongitude(longitude);
+    result.setQuery(query);
     return result;
   }
 }

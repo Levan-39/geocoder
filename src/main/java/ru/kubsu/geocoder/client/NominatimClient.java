@@ -1,7 +1,8 @@
-package ru.kubsu.geocoder.client;
 /**
- * Copyright 2023
+ * Copyright 2023 Levan Dumanyan
  */
+
+package ru.kubsu.geocoder.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,28 +14,17 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * @author levan
+ * @author Levan Dumanyan
  */
 @FeignClient(value = "nominatim", url = "https://nominatim.openstreetmap.org")
 public interface NominatimClient {
+
   String JSON_FORMAT = "json";
-
-  @RequestMapping(method = RequestMethod.GET, value = "/search", produces = "application/json")
-  List<NominatimPlace> search(@RequestParam(value = "q") String query,
-                              @RequestParam(value = "format") String format);
-
-  @RequestMapping(method = RequestMethod.GET, value = "/reverse", produces = "application/json")
-  NominatimPlace reverse(@RequestParam(value = "lat") Double lat,
-                         @RequestParam(value = "lon") Double lon,
-                         @RequestParam(value = "format") String format);
-
-
   /**
-   * Поиск объекта на карте по адресной строке в свободном параметре
-   * В случаее нескольких подходящий объектов будет возвращен самый релевантный
+   *  Поиск объекта на карте по адресу (Возвращает самый релевантый).
    *
-   * @param query строка поиска
-   * @return объект адреса
+   * @param query Строка поиска
+   * @return Объект адреса
    */
   default Optional<NominatimPlace> search(final String query) {
     try {
@@ -43,4 +33,19 @@ public interface NominatimClient {
       return Optional.empty();
     }
   }
+  @RequestMapping(method = RequestMethod.GET, value = "/search", produces = "application/json")
+  List<NominatimPlace> search(@RequestParam("q") String query,
+                              @RequestParam("format") String format);
+
+  default Optional<NominatimPlace> reverse(final Double latitude, final Double longitude) {
+    try {
+      return Optional.of(reverse(latitude, longitude, JSON_FORMAT));
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
+  }
+  @RequestMapping(method = RequestMethod.GET, value = "/reverse", produces = "application/json")
+  NominatimPlace reverse(@RequestParam("lat") Double latitude,
+                         @RequestParam("lon") Double longitude,
+                         @RequestParam("format") String format);
 }
